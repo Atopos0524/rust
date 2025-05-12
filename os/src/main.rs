@@ -6,32 +6,34 @@
 mod console;
 mod lang_items;
 mod sbi;
+mod syscall;
+mod trap;
+mod batch;
+
 
 use core::arch::global_asm;
 
 global_asm!(include_str!("entry.asm"));
+global_asm!(include_str!("link_app.S"));
 
 #[no_mangle]
-pub extern "C" fn rust_main() -> ! {
+pub fn rust_main() -> ! {
     clear_bss();
-    println!("Hello, world!");
-    print_sections();
-    panic!("Shutdown machine!");
+    println!("[Kernel] Hello, world!");
+    trap::init();
+    batch::init();
+    batch::run_next_app();
 }
+
 
 fn clear_bss() {
     extern "C" {
         fn sbss();
         fn ebss();
     }
-    unsafe {
-        let mut ptr = sbss as *mut u8;
-        while ptr < ebss as *mut u8 {
-            ptr.write_volatile(0);
-            ptr = ptr.add(1);
-        }
-    }
+    (sbss as usize..ebss as usize).for_each(|a| unsafe { (a as *mut u8).write_volatile(0) });
 }
+
 
 fn print_sections() {
     extern "C" {

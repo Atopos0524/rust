@@ -37,3 +37,9 @@ pub fn init() {
     heap_allocator::init_heap();
     heap_allocator::heap_test();
 }
+pub use page_table::{
+    PageTableEntry,
+    translated_byte_buffer,
+    translated_str,
+    translated_refmut,
+};
